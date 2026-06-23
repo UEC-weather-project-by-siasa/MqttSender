@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MQTT IoT Simulator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div>
+          <div class="eyebrow">ESP32 MQTT DEVICE SIMULATOR</div>
+          <h1>MQTT IoT Simulator</h1>
+          <p>ตั้งค่า broker, เลือก sensor, แล้วส่งข้อมูลจำลองไปยัง server ได้ทั้งแบบทันที ต่อเนื่อง และย้อนหลัง</p>
+        </div>
+        <div class="hero-status">
+          <div class="status-dot" id="mqttDot"></div>
+          <div>
+            <span>MQTT</span>
+            <strong id="mqttStatusText">Disconnected</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <div class="metric-card">
+          <span>Job</span>
+          <strong id="jobStatus">Ready</strong>
+        </div>
+        <div class="metric-card">
+          <span>Packets</span>
+          <strong id="sentCounter">0</strong>
+        </div>
+        <div class="metric-card">
+          <span>Topic</span>
+          <strong id="topicPreview">device/weather-001/data</strong>
+        </div>
+        <div class="metric-card">
+          <span>Last Event</span>
+          <strong id="lastEvent">Waiting</strong>
+        </div>
+      </section>
+
+      <section class="main-grid">
+        <form class="panel config-panel" id="simForm">
+          <div class="section-head">
+            <div>
+              <h2>Broker & Device</h2>
+              <p>ข้อมูลเชื่อมต่อ MQTT และ identity ของ device</p>
+            </div>
+          </div>
+
+          <div class="form-grid two">
+            <label>MQTT Server
+              <input name="host" placeholder="192.168.1.10 หรือ broker.example.com" required>
+            </label>
+            <label>Port
+              <input name="port" type="number" min="1" max="65535" value="1883" required>
+            </label>
+            <label>Device ID
+              <input name="device_id" required>
+            </label>
+            <label>Device Key / Password
+              <input name="device_key" type="password">
+            </label>
+            <label>Username
+              <input name="username" placeholder="เว้นว่าง = ใช้ Device ID">
+            </label>
+            <label>Net Mode
+              <select name="net_mode">
+                <option>WiFi</option>
+                <option>4G</option>
+                <option>SIM</option>
+                <option>Simulator</option>
+              </select>
+            </label>
+          </div>
+
+          <label>Topic
+            <input name="topic" placeholder="เว้นว่าง = device/{device_id}/data">
+          </label>
+
+          <div class="form-grid two compact">
+            <label>QoS
+              <select name="qos">
+                <option value="0">0</option>
+                <option value="1">1</option>
+              </select>
+            </label>
+            <label class="checkline">
+              <input name="retain" type="checkbox">
+              <span>MQTT Retain</span>
+            </label>
+          </div>
+        </form>
+
+        <section class="panel action-panel">
+          <div class="section-head">
+            <div>
+              <h2>Send Control</h2>
+              <p>เลือกวิธีส่งข้อมูลจำลอง</p>
+            </div>
+          </div>
+
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="now" type="button">ส่งทันที</button>
+            <button class="tab" data-tab="stream" type="button">สุ่มต่อเนื่อง</button>
+            <button class="tab" data-tab="backfill" type="button">ส่งย้อนหลัง</button>
+          </div>
+
+          <div class="tab-view active" id="tab-now">
+            <div class="control-card">
+              <div>
+                <strong>Single Packet</strong>
+                <span>สร้าง payload ปัจจุบันแล้ว publish 1 ครั้ง</span>
+              </div>
+              <button class="primary" id="sendNow" type="button">ส่ง 1 packet</button>
+            </div>
+          </div>
+
+          <div class="tab-view" id="tab-stream">
+            <div class="control-card">
+              <div>
+                <strong>Live Random Stream</strong>
+                <span>สุ่มค่าตามช่วงที่ตั้งไว้และส่งซ้ำตาม interval</span>
+              </div>
+              <label class="stream-interval">Interval
+                <input id="streamInterval" type="number" min="0.2" step="0.1" value="5">
+              </label>
+              <div class="inline-actions">
+                <button class="primary" id="startStream" type="button">เริ่มส่ง</button>
+                <button class="danger" id="stopJob" type="button">หยุด</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-view" id="tab-backfill">
+            <div class="form-grid three">
+              <label>เริ่ม
+                <input id="backfillStart" type="datetime-local">
+              </label>
+              <label>สิ้นสุด
+                <input id="backfillEnd" type="datetime-local">
+              </label>
+              <label>Step วินาที
+                <input id="backfillStep" type="number" min="1" value="60">
+              </label>
+              <label>Packets/ชุด
+                <input id="backfillBatchSize" type="number" min="1" max="1000" value="10">
+              </label>
+              <label>พักระหว่างชุด
+                <input id="backfillBatchDelay" type="number" min="0" step="0.1" value="1">
+              </label>
+              <div class="hint-box">
+                <strong>Drain mode</strong>
+                <span>Step คือระยะห่างของเวลาใน payload ส่วน Packets/ชุด กับ พักระหว่างชุด คือความเร็วตอน publish จริง</span>
+              </div>
+            </div>
+            <div class="inline-actions top-gap">
+              <button class="primary" id="startBackfill" type="button">เริ่มส่งย้อนหลัง</button>
+              <button class="danger" id="stopBackfill" type="button">หยุด</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel sensor-panel">
+        <div class="section-head">
+          <div>
+            <h2>Sensors</h2>
+            <p>เปิด/ปิด sensor, ตั้งช่วงสุ่ม หรือกำหนดค่าคงที่แยกรายตัว</p>
+          </div>
+          <button class="ghost" id="addSensor" type="button">+ Sensor</button>
+        </div>
+        <div class="sensor-header">
+          <span>On</span>
+          <span>Key</span>
+          <span>Name</span>
+          <span>Min</span>
+          <span>Max</span>
+          <span>Cluster %</span>
+          <span>Mode</span>
+          <span>Fixed</span>
+          <span>Decimal</span>
+          <span></span>
+        </div>
+        <div class="sensor-table" id="sensorTable"></div>
+      </section>
+
+      <section class="bottom-grid">
+        <section class="panel output-panel">
+          <div class="section-head">
+            <div>
+              <h2>Last Payload</h2>
+              <p>payload ล่าสุดที่ส่งหรือ job ล่าสุด</p>
+            </div>
+          </div>
+          <pre id="output">{}</pre>
+        </section>
+
+        <section class="panel log-panel">
+          <div class="section-head">
+            <div>
+              <h2>MQTT Log</h2>
+              <p>สถานะ connect, publish, disconnect และ error</p>
+            </div>
+            <button class="ghost small" id="refreshLogs" type="button">Refresh</button>
+          </div>
+          <div class="connection-card">
+            <div class="status-dot" id="logDot"></div>
+            <div>
+              <span id="logStatusText">Disconnected</span>
+              <strong id="logHost">No broker</strong>
+            </div>
+          </div>
+          <div class="log-list" id="logList"></div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      window.DEFAULT_SENSORS = {{ default_sensors | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+  </body>
+</html>
