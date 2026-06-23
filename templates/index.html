@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="th">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,7 @@
         <div>
           <div class="eyebrow">ESP32 MQTT DEVICE SIMULATOR</div>
           <h1>MQTT IoT Simulator</h1>
-          <p>ตั้งค่า broker, เลือก sensor, แล้วส่งข้อมูลจำลองไปยัง server ได้ทั้งแบบทันที ต่อเนื่อง และย้อนหลัง</p>
+          <p>Configure a broker, choose sensors, and publish simulated device data instantly, continuously, or as historical backfill.</p>
         </div>
         <div class="hero-status">
           <div class="status-dot" id="mqttDot"></div>
@@ -47,13 +47,13 @@
           <div class="section-head">
             <div>
               <h2>Broker & Device</h2>
-              <p>ข้อมูลเชื่อมต่อ MQTT และ identity ของ device</p>
+              <p>MQTT connection settings and device identity.</p>
             </div>
           </div>
 
           <div class="form-grid two">
             <label>MQTT Server
-              <input name="host" placeholder="192.168.1.10 หรือ broker.example.com" required>
+              <input name="host" placeholder="192.168.1.10 or broker.example.com" required>
             </label>
             <label>Port
               <input name="port" type="number" min="1" max="65535" value="1883" required>
@@ -62,10 +62,10 @@
               <input name="device_id" required>
             </label>
             <label>Device Key / Password
-              <input name="device_key" type="password">
+              <input name="device_key">
             </label>
             <label>Username
-              <input name="username" placeholder="เว้นว่าง = ใช้ Device ID">
+              <input name="username" placeholder="Leave empty to use Device ID">
             </label>
             <label>Net Mode
               <select name="net_mode">
@@ -78,7 +78,7 @@
           </div>
 
           <label>Topic
-            <input name="topic" placeholder="เว้นว่าง = device/{device_id}/data">
+            <input name="topic" placeholder="Leave empty = device/{device_id}/data">
           </label>
 
           <div class="form-grid two compact">
@@ -99,23 +99,23 @@
           <div class="section-head">
             <div>
               <h2>Send Control</h2>
-              <p>เลือกวิธีส่งข้อมูลจำลอง</p>
+              <p>Choose how simulated payloads are published.</p>
             </div>
           </div>
 
           <div class="tabs" role="tablist">
-            <button class="tab active" data-tab="now" type="button">ส่งทันที</button>
-            <button class="tab" data-tab="stream" type="button">สุ่มต่อเนื่อง</button>
-            <button class="tab" data-tab="backfill" type="button">ส่งย้อนหลัง</button>
+            <button class="tab active" data-tab="now" type="button">Send Now</button>
+            <button class="tab" data-tab="stream" type="button">Live Stream</button>
+            <button class="tab" data-tab="backfill" type="button">Backfill</button>
           </div>
 
           <div class="tab-view active" id="tab-now">
             <div class="control-card">
               <div>
                 <strong>Single Packet</strong>
-                <span>สร้าง payload ปัจจุบันแล้ว publish 1 ครั้ง</span>
+                <span>Create a current payload and publish it once.</span>
               </div>
-              <button class="primary" id="sendNow" type="button">ส่ง 1 packet</button>
+              <button class="primary" id="sendNow" type="button">Send 1 Packet</button>
             </div>
           </div>
 
@@ -123,43 +123,43 @@
             <div class="control-card">
               <div>
                 <strong>Live Random Stream</strong>
-                <span>สุ่มค่าตามช่วงที่ตั้งไว้และส่งซ้ำตาม interval</span>
+                <span>Generate values within each sensor range and publish repeatedly.</span>
               </div>
               <label class="stream-interval">Interval
                 <input id="streamInterval" type="number" min="0.2" step="0.1" value="5">
               </label>
               <div class="inline-actions">
-                <button class="primary" id="startStream" type="button">เริ่มส่ง</button>
-                <button class="danger" id="stopJob" type="button">หยุด</button>
+                <button class="primary" id="startStream" type="button">Start</button>
+                <button class="danger" id="stopJob" type="button">Stop</button>
               </div>
             </div>
           </div>
 
           <div class="tab-view" id="tab-backfill">
             <div class="form-grid three">
-              <label>เริ่ม
+              <label>Start
                 <input id="backfillStart" type="datetime-local">
               </label>
-              <label>สิ้นสุด
+              <label>End
                 <input id="backfillEnd" type="datetime-local">
               </label>
-              <label>Step วินาที
+              <label>Timestamp Step (sec)
                 <input id="backfillStep" type="number" min="1" value="60">
               </label>
-              <label>Packets/ชุด
+              <label>Packets/Batch
                 <input id="backfillBatchSize" type="number" min="1" max="1000" value="10">
               </label>
-              <label>พักระหว่างชุด
+              <label>Batch Delay (sec)
                 <input id="backfillBatchDelay" type="number" min="0" step="0.1" value="1">
               </label>
               <div class="hint-box">
                 <strong>Drain mode</strong>
-                <span>Step คือระยะห่างของเวลาใน payload ส่วน Packets/ชุด กับ พักระหว่างชุด คือความเร็วตอน publish จริง</span>
+                <span>Step controls timestamp spacing in the payload. Packets/Batch and Batch Delay control the actual publish speed.</span>
               </div>
             </div>
             <div class="inline-actions top-gap">
-              <button class="primary" id="startBackfill" type="button">เริ่มส่งย้อนหลัง</button>
-              <button class="danger" id="stopBackfill" type="button">หยุด</button>
+              <button class="primary" id="startBackfill" type="button">Start Backfill</button>
+              <button class="danger" id="stopBackfill" type="button">Stop</button>
             </div>
           </div>
         </section>
@@ -169,7 +169,7 @@
         <div class="section-head">
           <div>
             <h2>Sensors</h2>
-            <p>เปิด/ปิด sensor, ตั้งช่วงสุ่ม หรือกำหนดค่าคงที่แยกรายตัว</p>
+            <p>Enable sensors, set random ranges, smoothness, or fixed values per sensor.</p>
           </div>
           <button class="ghost" id="addSensor" type="button">+ Sensor</button>
         </div>
@@ -193,7 +193,7 @@
           <div class="section-head">
             <div>
               <h2>Last Payload</h2>
-              <p>payload ล่าสุดที่ส่งหรือ job ล่าสุด</p>
+              <p>The latest published payload or active job state.</p>
             </div>
           </div>
           <pre id="output">{}</pre>
@@ -203,7 +203,7 @@
           <div class="section-head">
             <div>
               <h2>MQTT Log</h2>
-              <p>สถานะ connect, publish, disconnect และ error</p>
+              <p>Connection, publish, disconnect, and error events.</p>
             </div>
             <button class="ghost small" id="refreshLogs" type="button">Refresh</button>
           </div>

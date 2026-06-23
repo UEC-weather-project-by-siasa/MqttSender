@@ -38,7 +38,7 @@ function renderSensors() {
       <input value="${sensor.label}" data-field="label" aria-label="sensor label" placeholder="Temperature">
       <input type="number" step="any" value="${sensor.min}" data-field="min" aria-label="min">
       <input type="number" step="any" value="${sensor.max}" data-field="max" aria-label="max">
-      <input type="number" min="0" max="100" value="${sensor.cluster}" data-field="cluster" aria-label="cluster percent" title="ยิ่งสูง ค่ายิ่งไม่กระโดด">
+      <input type="number" min="0" max="100" value="${sensor.cluster}" data-field="cluster" aria-label="cluster percent" title="Higher values keep random values closer to the previous reading">
       <select data-field="mode" aria-label="mode">
         <option value="random" ${sensor.mode === "random" ? "selected" : ""}>random</option>
         <option value="fixed" ${sensor.mode === "fixed" ? "selected" : ""}>fixed</option>
@@ -132,7 +132,7 @@ function setConnectionVisual(state) {
 
 function renderLogs(logs) {
   if (!logs.length) {
-    logList.innerHTML = `<div class="empty-log">ยังไม่มี MQTT event</div>`;
+    logList.innerHTML = `<div class="empty-log">No MQTT events yet</div>`;
     return;
   }
   logList.innerHTML = logs

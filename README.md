@@ -1,6 +1,6 @@
 # MQTT IoT Simulator
 
-เว็บแอพ Python สำหรับจำลอง ESP32/IoT device ส่ง MQTT payload ไปที่ broker
+Python web app for simulating an ESP32/IoT device that publishes MQTT payloads to a broker.
 
 ## Run
 
@@ -11,17 +11,17 @@ pip install -r requirements.txt
 python app.py
 ```
 
-เปิดเว็บที่ `http://127.0.0.1:5000`
+Open `http://127.0.0.1:5001`
 
 ## Payload
 
-ค่าเริ่มต้นส่งไปที่ topic:
+Default publish topic:
 
 ```text
 device/{device_id}/data
 ```
 
-รูปแบบ JSON:
+JSON payload:
 
 ```json
 {
@@ -38,4 +38,4 @@ device/{device_id}/data
 }
 ```
 
-ตอนเชื่อมต่อจะส่ง retained status ไปที่ `device/{device_id}/status` เป็น `{"status":"online"}` และตั้ง last will เป็น `offline` เหมือน firmware ตัวอย่าง
+When connected, the simulator publishes retained status to `device/{device_id}/status` as `{"status":"online"}` and sets the MQTT last will to `offline`, matching the sample firmware behavior.
